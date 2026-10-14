@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#f6f1e7" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="中文考试练习" />
+<meta name="format-detection" content="telephone=no,date=no,address=no,email=no" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%238c3b2e'/%3E%3Ctext x='32' y='47' font-size='40' text-anchor='middle' fill='%23fffdf8' font-family='serif'%3E%E6%96%87%3C/text%3E%3C/svg%3E" />
+<title>中文考试练习</title>
+<style>
+:root{
+  --bg:#f6f1e7; --card:#fffdf8; --ink:#2f2a24; --sub:#7d7264;
+  --accent:#8c3b2e; --accent-soft:#f0e2dc; --gold:#b98b4e;
+  --ok:#2e7d4f; --ok-soft:#e6f2ea; --bad:#b3382c; --bad-soft:#f8e7e4;
+  --line:#e5dbc9; --blank:#c9bda5;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink); min-height:100vh;
+  font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif;
+  line-height:1.7; font-size:16px;
+  overscroll-behavior-y:contain;
+}
+.wrap{max-width:720px;margin:0 auto;padding:16px 16px 40px;
+  display:flex;flex-direction:column;
+  min-height:100vh;min-height:100dvh;
+  padding-left:calc(16px + env(safe-area-inset-left));
+  padding-right:calc(16px + env(safe-area-inset-right));}
+.han{font-family:"Songti SC","STSong","SimSun","Source Han Serif SC",serif;}
+button,.mod,input,select{touch-action:manipulation}
+
+/* 顶栏 */
+.top{display:flex;align-items:center;gap:10px;padding:6px 0 14px;
+  position:sticky;top:0;z-index:20;
+  background:linear-gradient(var(--bg) 76%,rgba(246,241,231,.82));
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  margin:0 -16px;padding-left:16px;padding-right:16px}
+.top .title{font-size:18px;font-weight:700;letter-spacing:.5px;flex:1;min-width:0}
+.top .title small{display:block;font-size:12px;font-weight:400;color:var(--sub);letter-spacing:0}
+.back{border:1px solid var(--line);background:var(--card);color:var(--ink);
+  border-radius:10px;padding:6px 12px;font-size:14px;cursor:pointer;min-height:40px}
+.back:active{background:#f0ebe0}
+
+/* 卡片 */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:18px 16px;box-shadow:0 2px 10px rgba(90,70,40,.05);margin-bottom:14px}
+.card h2{margin:0 0 4px;font-size:17px}
+.card p.desc{margin:0;color:var(--sub);font-size:13.5px}
+
+/* 首页模块 */
+.mod{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
+  border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer;
+  box-shadow:0 2px 10px rgba(90,70,40,.05);transition:transform .12s}
+.mod:active{transform:scale(.985)}
+.mod .no{flex:0 0 42px;height:42px;border-radius:12px;display:grid;place-items:center;
+  background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:16px}
+.mod .m-main{flex:1;min-width:0}
+.mod .m-name{font-weight:600;font-size:16.5px}
+.mod .m-desc{color:var(--sub);font-size:13px;margin-top:2px}
+.mod.locked{opacity:.62;cursor:default}
+.mod.locked .no{background:#efeae0;color:#a09688}
+.mod .go{color:var(--sub);font-size:13px}
+
+/* 选项组 */
+.row{margin:14px 0}
+.row .lab{font-size:13.5px;color:var(--sub);margin-bottom:8px}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-width:96px;min-height:52px;border:1px solid var(--line);background:#fff;
+  border-radius:12px;padding:11px 8px;font-size:14.5px;color:var(--ink);cursor:pointer;line-height:1.35}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.seg button .s{display:block;font-size:11.5px;opacity:.75;font-weight:400}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:15px;min-height:52px;font-size:16.5px;
+  font-weight:600;background:var(--accent);color:#fff;cursor:pointer;margin-top:18px}
+.btn:active{opacity:.9}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:500}
+
+/* 答题 */
+.qbar{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--sub);margin-bottom:8px}
+.qbar .mini{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 10px;
+  font-size:12px;color:var(--sub);cursor:pointer;white-space:nowrap}
+.bar{height:6px;background:#eae1d2;border-radius:99px;overflow:hidden;margin-bottom:16px}
+.bar i{display:block;height:100%;background:var(--gold);border-radius:99px;transition:width .25s}
+.ask{font-size:13.5px;color:var(--sub);margin-bottom:10px}
+.prompt{font-size:24px;line-height:1.9;letter-spacing:1px;margin:2px 0 18px;word-break:break-word}
+.prompt .pm{color:var(--accent);opacity:.85}
+/* 加点词：汉语的着重号（字下小圆点） */
+.dot{font-style:normal;font-weight:600;
+  text-emphasis:dot var(--accent);text-emphasis-position:under right;
+  -webkit-text-emphasis:dot var(--accent);-webkit-text-emphasis-position:under right}
+.sk{font-size:20px;line-height:1.9;letter-spacing:0;margin:0 0 6px}
+.sk .bk{display:inline-block;width:1.28em;height:1.1em;border-bottom:2px solid var(--blank);
+  margin:0 4px;vertical-align:-3px}
+.sk .pm{color:var(--sub)}
+.sk-note{font-size:12px;color:var(--sub);margin-bottom:12px}
+input.ans{width:100%;font-size:19px;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);
+  background:#fff;color:var(--ink);outline:none;
+  font-family:"Songti SC","STSong","SimSun",serif;letter-spacing:1px}
+input.ans:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(185,139,78,.14)}
+.acts{display:flex;gap:10px;margin-top:12px}
+.acts button{flex:1;border-radius:12px;padding:13px;min-height:50px;font-size:15.5px;cursor:pointer;border:1px solid var(--line);background:#fff}
+.acts button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+
+/* 底部操作条 */
+.actionbar{position:sticky;bottom:0;z-index:20;display:flex;gap:10px;margin-top:auto;
+  margin-left:-16px;margin-right:-16px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  background:linear-gradient(rgba(246,241,231,.72),var(--bg) 52%);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.actionbar button{flex:1 1 auto;min-height:52px;border-radius:14px;font-size:16.5px;
+  border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.actionbar button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.actionbar button.mini{flex:0 0 auto;padding:0 14px;font-size:14px;color:var(--sub)}
+
+/* 判分 */
+.verdict{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;margin-bottom:10px}
+.verdict.ok{color:var(--ok)}
+.verdict.bad{color:var(--bad)}
+.result-box{border-radius:14px;padding:14px;border:1px solid var(--line);background:#fffdf7}
+.result-box.ok{background:var(--ok-soft);border-color:#cbe3d5}
+.result-box.bad{background:var(--bad-soft);border-color:#eed3ce}
+.correct-line{font-size:22px;line-height:1.9;letter-spacing:1px}
+.answer-line{font-size:20px;line-height:1.9;letter-spacing:1px;color:var(--accent);font-weight:600;margin-top:8px}
+.answer-line .lbl{font-size:13.5px;color:var(--sub);font-weight:400;margin-right:6px}
+.src{font-size:13.5px;color:var(--sub);margin-top:8px}
+.yours{font-size:14px;color:var(--bad);margin-top:6px;opacity:.85}
+
+/* 结算 */
+.big{font-size:40px;font-weight:700;color:var(--accent);line-height:1.2;text-align:center}
+.big small{font-size:15px;color:var(--sub);font-weight:400;display:block;margin-top:4px}
+.stats{display:flex;gap:10px;margin:16px 0 0}
+.stat{flex:1;text-align:center;background:#fffdf7;border:1px solid var(--line);border-radius:12px;padding:10px}
+.stat b{display:block;font-size:21px}
+.stat span{font-size:12px;color:var(--sub)}
+.wrong-item{border-top:1px dashed var(--line);padding:14px 0}
+.wrong-item:first-of-type{border-top:0}
+.wrong-item .wq{font-size:14px;color:var(--sub)}
+.wrong-item .wa{font-size:19px;margin-top:4px}
+.toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(47,42,36,.92);
+  color:#fff;padding:10px 18px;border-radius:99px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:99}
+.toast.show{opacity:1}
+.foot{text-align:center;color:#a89c8b;font-size:12px;margin-top:22px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   数据区
+   一、MINGJU  名句（s 简体整句 / t 繁体整句 / a 作者 / at 繁体作者 / src 出处 / srct 繁体出处）
+   二、DAIDIAN 带点字（q 句子，加点词用【】标出 / a 标准答案（多个任一对）/ k 核心义项关键词）
+   新增内容时，DATA-START / DATA-END 之间的 JSON 可被 validate_data.py 直接解析校验。
+   ========================================================================= */
+/* DATA-START */
+const MINGJU = [
+ {"s":"非淡泊无以明志，非宁静无以致远。","t":"非淡泊無以明志，非寧靜無以致遠。","a":"诸葛亮","at":"諸葛亮","src":"《诫子书》","srct":"《誡子書》"},
+ {"s":"非学无以广才，非志无以成学。","t":"非學無以廣才，非志無以成學。","a":"诸葛亮","at":"諸葛亮","src":"《诫子书》","srct":"《誡子書》"},
+ {"s":"勿以恶小而为之，勿以善小而不为。","t":"勿以惡小而為之，勿以善小而不為。","a":"陈寿","at":"陳壽","src":"《三国志·蜀志》裴松之注","srct":"《三國志·蜀志》裴松之注"},
+ {"s":"采菊东篱下，悠然见南山。","t":"採菊東籬下，悠然見南山。","a":"陶渊明","at":"陶淵明","src":"《饮酒》","srct":"《飲酒》"},
+ {"s":"羁鸟恋旧林，池鱼思故渊。","t":"羈鳥戀舊林，池魚思故淵。","a":"陶渊明","at":"陶淵明","src":"《归园田居》","srct":"《歸園田居》"},
+ {"s":"云无心以出岫，鸟倦飞而知还。","t":"雲無心以出岫，鳥倦飛而知還。","a":"陶渊明","at":"陶淵明","src":"《归去来兮辞》","srct":"《歸去來兮辭》"},
+ {"s":"木欣欣以向荣，泉涓涓而始流。","t":"木欣欣以向榮，泉涓涓而始流。","a":"陶渊明","at":"陶淵明","src":"《归去来兮辞》","srct":"《歸去來兮辭》"},
+ {"s":"盛年不重来，一日难再晨。","t":"盛年不重來，一日難再晨。","a":"陶渊明","at":"陶淵明","src":"《杂诗》","srct":"《雜詩》"},
+ {"s":"及时当勉励，岁月不待人。","t":"及時當勉勵，歲月不待人。","a":"陶渊明","at":"陶淵明","src":"《杂诗》","srct":"《雜詩》"},
+ {"s":"刑天舞干戚，猛志固常在。","t":"刑天舞干戚，猛志固常在。","a":"陶渊明","at":"陶淵明","src":"《读山海经》","srct":"《讀山海經》"},
+ {"s":"不戚戚于贫贱，不汲汲于富贵。","t":"不戚戚於貧賤，不汲汲於富貴。","a":"陶渊明","at":"陶淵明","src":"《五柳先生传》","srct":"《五柳先生傳》"},
+ {"s":"池塘生春草，园柳变鸣禽。","t":"池塘生春草，園柳變鳴禽。","a":"谢灵运","at":"謝靈運","src":"《登池上楼》","srct":"《登池上樓》"},
+ {"s":"宁为玉碎，不为瓦全。","t":"寧為玉碎，不為瓦全。","a":"李百药","at":"李百藥","src":"《北齐书·元景安传》","srct":"《北齊書·元景安傳》"},
+ {"s":"欲人勿知，莫若勿为。","t":"欲人勿知，莫若勿為。","a":"枚乘","at":"枚乘","src":"《上书谏吴王》","srct":"《上書諫吳王》"},
+ {"s":"近朱者赤，近墨者黑。","t":"近朱者赤，近墨者黑。","a":"傅玄","at":"傅玄","src":"《太子少傅箴》","srct":"《太子少傅箴》"},
+ {"s":"登山则情满于山，观海则意溢于海。","t":"登山則情滿於山，觀海則意溢於海。","a":"刘勰","at":"劉勰","src":"《文心雕龙·神思》","srct":"《文心雕龍·神思》"},
+ {"s":"操千曲而后晓声，观千剑而后识器。","t":"操千曲而後曉聲，觀千劍而後識器。","a":"刘勰","at":"劉勰","src":"《文心雕龙·知音》","srct":"《文心雕龍·知音》"},
+ {"s":"余霞散成绮，澄江静如练。","t":"餘霞散成綺，澄江靜如練。","a":"谢朓","at":"謝朓","src":"《晚登三山还望京邑》","srct":"《晚登三山還望京邑》"},
+ {"s":"蝉噪林逾静，鸟鸣山更幽。","t":"蟬噪林逾靜，鳥鳴山更幽。","a":"王籍","at":"王籍","src":"《入若耶溪》","srct":"《入若耶溪》"},
+ {"s":"疾风知劲草，板荡识诚臣。","t":"疾風知勁草，板蕩識誠臣。","a":"李世民","at":"李世民","src":"《赐萧瑀》","srct":"《賜蕭瑀》"},
+ {"s":"海内存知己，天涯若比邻。","t":"海內存知己，天涯若比鄰。","a":"王勃","at":"王勃","src":"《送杜少府之任蜀州》","srct":"《送杜少府之任蜀州》"},
+ {"s":"落霞与孤鹜齐飞，秋水共长天一色。","t":"落霞與孤鶩齊飛，秋水共長天一色。","a":"王勃","at":"王勃","src":"《滕王阁序》","srct":"《滕王閣序》"},
+ {"s":"冯唐易老，李广难封。","t":"馮唐易老，李廣難封。","a":"王勃","at":"王勃","src":"《滕王阁序》","srct":"《滕王閣序》"},
+ {"s":"念天地之悠悠，独怆然而涕下。","t":"念天地之悠悠，獨愴然而涕下。","a":"陈子昂","at":"陳子昂","src":"《登幽州台歌》","srct":"《登幽州臺歌》"},
+ {"s":"春江潮水连海平，海上明月共潮生。","t":"春江潮水連海平，海上明月共潮生。","a":"张若虚","at":"張若虛","src":"《春江花月夜》","srct":"《春江花月夜》"},
+ {"s":"江畔何人初见月？江月何年初照人？","t":"江畔何人初見月？江月何年初照人？","a":"张若虚","at":"張若虛","src":"《春江花月夜》","srct":"《春江花月夜》"},
+ {"s":"年年岁岁花相似，岁岁年年人不同。","t":"年年歲歲花相似，歲歲年年人不同。","a":"刘希夷","at":"劉希夷","src":"《代悲白头翁》","srct":"《代悲白頭翁》"},
+ {"s":"海上生明月，天涯共此时。","t":"海上生明月，天涯共此時。","a":"张九龄","at":"張九齡","src":"《望月怀远》","srct":"《望月懷遠》"},
+ {"s":"思君如满月，夜夜减清辉。","t":"思君如滿月，夜夜減清輝。","a":"张九龄","at":"張九齡","src":"《赋得自君之出矣》","srct":"《賦得自君之出矣》"},
+ {"s":"野旷天低树，江清月近人。","t":"野曠天低樹，江清月近人。","a":"孟浩然","at":"孟浩然","src":"《宿建德江》","srct":"《宿建德江》"}
+];
+/* DATA-END */
+
+/* DATA-DAIDIAN-START */
+const DAIDIAN = [
+ {"sec":"gushi","g":"《古诗十九首》","q":"交【疏】结绮窗","a":["镂刻"],"k":["镂刻","雕刻","刻"]},
+ {"sec":"gushi","g":"《古诗十九首》","q":"【无乃】杞梁妻","a":["莫非，大概"],"k":["莫非","大概","恐怕"]},
+ {"sec":"gushi","g":"《古诗十九首》","q":"【慷慨】有余哀","a":["感慨，悲叹"],"k":["感慨","悲叹","感叹","叹息","感伤"]},
+ {"sec":"gushi","g":"《古诗十九首》","q":"但伤【知音】稀","a":["识曲的人，借指知心的人"],"k":["知心","识曲","懂他","理解他"]},
+ {"sec":"gushi","g":"《古诗十九首》","q":"采之欲【遗】谁","a":["赠"],"k":["赠","送给","送"]},
+ {"sec":"gushi","g":"《古诗十九首》","q":"【还顾】望旧乡","a":["回顾，回头看"],"k":["回顾","回头看","回望","回头望"]},
+
+ {"sec":"quanxue","g":"《劝学》","q":"【假】舆马者，非利足也，而致千里","a":["凭借"],"k":["凭借","借助","依靠","借用","利用"]},
+ {"sec":"quanxue","g":"《劝学》","q":"假舆马者，非利足也，而【致】千里","a":["达到"],"k":["达到","到达"]},
+ {"sec":"quanxue","g":"《劝学》","q":"【輮】使之然也","a":["通煣，用火烘烤木材使之弯曲"],"k":["烘烤","用火烤","烤弯","煣"]},
+ {"sec":"quanxue","g":"《劝学》","q":"輮使之【然】也","a":["这样"],"k":["这样","如此"]},
+ {"sec":"quanxue","g":"《劝学》","q":"驽马十【驾】，功在不舍","a":["马拉车走一天（为一驾）"],"k":["马拉车走一天","走一天","一天的路程","一天的行程"]},
+ {"sec":"quanxue","g":"《劝学》","q":"驽马十驾，【功】在不舍","a":["成功，效果"],"k":["成功","效果","功效"]},
+ {"sec":"quanxue","g":"《劝学》","q":"【锲】而舍之","a":["刻"],"k":["刻","雕刻","镂刻"]},
+ {"sec":"quanxue","g":"《劝学》","q":"蟹六【跪】而二螯","a":["螃蟹的腿"],"k":["腿","脚"]},
+ {"sec":"quanxue","g":"《劝学》","q":"用心【躁】也","a":["浮躁，不专心"],"k":["浮躁","不专心","急躁","心浮","不静心"]},
+
+ {"sec":"bianxi","g":"一词多义 ·「绝」","q":"忽然抚尺一下，群响毕【绝】","a":["终止"],"k":["终止","停止","消失","断绝","停"]},
+ {"sec":"bianxi","g":"一词多义 ·「绝」","q":"率妻子邑人来此【绝】境","a":["隔断"],"k":["隔断","隔绝","不通"]},
+ {"sec":"bianxi","g":"一词多义 ·「绝」","q":"以为妙【绝】","a":["到了极点"],"k":["极点","极致","绝顶","非常"]},
+ {"sec":"bianxi","g":"一词多义 ·「绝」","q":"佛印【绝】类弥勒","a":["非常"],"k":["非常","十分","很"]},
+ {"sec":"bianxi","g":"一词多义 ·「绝」","q":"假舟楫者，非能水也，而【绝】江河","a":["横渡"],"k":["横渡","渡过","穿越"]},
+
+ {"sec":"bianxi","g":"一词多义 ·「强」","q":"挽弓当挽【强】，用箭当用长","a":["有力的"],"k":["有力","硬弓","强弓","强劲"]},
+ {"sec":"bianxi","g":"一词多义 ·「强」","q":"蚓无爪牙之利，筋骨之【强】","a":["强壮的"],"k":["强壮","强健","坚强"]},
+ {"sec":"bianxi","g":"一词多义 ·「强」","q":"策勋十二转，赏赐百千【强】","a":["有余"],"k":["有余","多","超出","出头"]},
+ {"sec":"bianxi","g":"一词多义 ·「强」","q":"乃自【强】步，日三四里","a":["竭力"],"k":["竭力","勉强","尽力","努力"]},
+
+ {"sec":"bianxi","g":"一词多义 ·「假」","q":"以是人多以书【假】余","a":["借"],"k":["借","借给","借出"]},
+ {"sec":"bianxi","g":"一词多义 ·「假」","q":"君子生非异也，善【假】于物也","a":["凭借，利用"],"k":["凭借","利用","借助","依靠"]},
+ {"sec":"bianxi","g":"一词多义 ·「假」","q":"【假】有人焉，举我言以复于我，亦必疑其诳","a":["假如，如果"],"k":["假如","如果","假使","若是"]},
+ {"sec":"bianxi","g":"一词多义 ·「假」","q":"乃悟前狼【假】寐，盖以诱敌","a":["不真"],"k":["不真","假装"]},
+
+ {"sec":"bianxi","g":"一词多义 ·「望」","q":"吾尝跂而【望】矣，不如登高之博见也","a":["向远处看"],"k":["向远处看","远望","眺望","往远处看","向远看"]},
+ {"sec":"bianxi","g":"一词多义 ·「望」","q":"日夜【望】将军至，岂敢反乎","a":["盼望，希望"],"k":["盼望","希望","期盼","等待"]},
+ {"sec":"bianxi","g":"一词多义 ·「望」","q":"先达德隆【望】尊","a":["名望"],"k":["名望","声望","威望"]},
+ {"sec":"bianxi","g":"一词多义 ·「望」","q":"适冬之【望】日前后","a":["望日，即农历每月十五日"],"k":["十五","月圆"]},
+
+ {"sec":"bianxi","g":"一词多义 ·「闻」","q":"顺风而呼，声非加疾也，而【闻】者彰","a":["听见"],"k":["听见","听到","听得到"]},
+ {"sec":"bianxi","g":"一词多义 ·「闻」","q":"博【闻】强识","a":["见闻，知识"],"k":["见闻","知识","见识"]},
+ {"sec":"bianxi","g":"一词多义 ·「闻」","q":"不能称前时之【闻】","a":["声誉，名声"],"k":["声誉","名声","名气","声望"]}
+];
+/* DATA-DAIDIAN-END */
+
+/* 繁体 → 简体 归一化表（判分时把繁、简、混写折算成简体再比较）。
+   前半是名句模块用到的字，后半（鏤、贈、憑…）是带点字模块用到的字。
+   新增句子若含新繁体字，需补进此表。注意：这段必须是纯 JSON（不能写 // 注释），
+   因为 validate_data.py 会直接解析它。 */
+const T2S = {
+ "無":"无","寧":"宁","靜":"静","遠":"远","學":"学","廣":"广","惡":"恶","為":"为","陳":"陈",
+ "雲":"云","飛":"飞","還":"还",
+ "壽":"寿","國":"国","採":"采","東":"东","籬":"篱","見":"见","羈":"羁","鳥":"鸟","戀":"恋",
+ "舊":"旧","魚":"鱼","淵":"渊","歸":"归","來":"来","辭":"辞","榮":"荣","難":"难","時":"时",
+ "當":"当","勵":"励","歲":"岁","雜":"杂","讀":"读","經":"经","於":"于","貧":"贫","賤":"贱",
+ "貴":"贵","傳":"传","園":"园","變":"变","鳴":"鸣","謝":"谢","靈":"灵","運":"运","樓":"楼",
+ "藥":"药","齊":"齐","書":"书","諫":"谏","吳":"吴","則":"则","滿":"满","觀":"观","劉":"刘",
+ "龍":"龙","後":"后","曉":"晓","聲":"声","劍":"剑","識":"识","餘":"余","綺":"绮","練":"练",
+ "蟬":"蝉","風":"风","勁":"劲","蕩":"荡","誠":"诚","賜":"赐","蕭":"萧","鄰":"邻","與":"与",
+ "鶩":"鹜","長":"长","閣":"阁","馮":"冯","張":"张","獨":"独","愴":"怆","臺":"台","連":"连",
+ "齡":"龄","懷":"怀","減":"减","輝":"辉","賦":"赋","曠":"旷","樹":"树","頭":"头","誡":"诫",
+ "內":"内",
+ "鏤":"镂","嘆":"叹","贈":"赠","顧":"顾","憑":"凭","達":"达","彎":"弯","樣":"样","這":"这",
+ "馬":"马","車":"车","駕":"驾","專":"专","終":"终","斷":"断","極":"极","橫":"横","壯":"壮",
+ "強":"强","譽":"誉","聽":"听","釋":"释","義":"义","準":"准","確":"确","簡":"简","單":"单",
+ "們":"们","個":"个","麼":"么","幾":"几","過":"过","給":"给","種":"种","氣":"气",
+ "數":"数","處":"处","問":"问","間":"间","開":"开","關":"关","動":"动"
+};
+
+/* 模块清单：以后加新模块，在这里登记 + 写好 setup / 出题器即可 */
+const MODULES = [
+  {id:'mingju', no:'一', name:'名句默写', desc:'三十句古代诗词名句 · 前半/后半互默', ready:true},
+  {id:'daidian', no:'二', name:'带点字（加点词解释）', desc:'解释加点词 35 处 · 近义答案也算对', ready:true},
+  {id:'p3', no:'三', name:'（第三部分）', desc:'待补充内容，告诉我考什么即可接入', ready:false}
+];
+
+const HAN_RE = /[\u3400-\u9fff\uf900-\ufaff]/;
+const SEP_RE = /[，,；;：:？?！!]/;
+const KEEP_RE = /[\u3400-\u9fff\uf900-\ufaff]/;
+
+const state = {
+  view:'home', moduleId:null,
+  // 名句选项
+  mode:'hs', script:'s', shuffle:true, scope:'all',
+  queue:[], idx:0, results:[], answered:false, correct:false, userInput:'', q:null
+};
+
+/* ---------- 工具 ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove('show'), 1600);
+}
+function shuffleArr(a){
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+/* 归一化：只留汉字，繁体折算成简体 */
+function norm(str){
+  let out = '';
+  for(const ch of String(str||'')) if(HAN_RE.test(ch)) out += (T2S[ch] || ch);
+  return out;
+}
+/* 答案归一化：再去掉"意思是""……的意思"这类口语外壳 */
+function normAns(str){
+  let s = norm(str);
+  s = s.replace(/^(意思是|意为|解释为|解释成|解释|就是|指的是|是指|指|为)/, '');
+  s = s.replace(/(的意思|之意|意思)$/, '');
+  return s;
+}
+function saveOpts(){
+  try{ localStorage.setItem('cnExamOpts', JSON.stringify({
+    mode:state.mode, script:state.script, shuffle:state.shuffle, scope:state.scope})); }catch(e){}
+}
+function loadOpts(){
+  try{
+    const c = JSON.parse(localStorage.getItem('cnExamOpts')||'{}');
+    if(c.mode) state.mode = c.mode;
+    if(c.script) state.script = c.script;
+    if(typeof c.shuffle === 'boolean') state.shuffle = c.shuffle;
+    if(c.scope) state.scope = c.scope;
+  }catch(e){}
+}
+function paint(str){
+  let h = '';
+  for(const ch of String(str)) h += HAN_RE.test(ch) ? esc(ch) : '<span class="pm">' + esc(ch) + '</span>';
+  return h;
+}
+function skeleton(str){
+  let h = '';
+  for(const ch of String(str)) h += HAN_RE.test(ch) ? '<i class="bk"></i>' : '<i class="pm">' + esc(ch) + '</i>';
+  return h;
+}
+
+/* =========================================================================
+   一、名句默写：出题器
+   ========================================================================= */
+function splitMingju(item){
+  const full = item[state.script === 't' ? 't' : 's'];
+  const m = full.match(SEP_RE);
+  const i = m ? m.index : Math.floor(full.length/2);
+  const sep = m ? m[0] : '';
+  return {full, first: full.slice(0,i), sep, second: full.slice(i + sep.length)};
+}
+function questionMingju(item){
+  const p = splitMingju(item);
+  const askSecond = state.mode === 'hs';
+  const answerDisp = askSecond ? p.second : (p.first + p.sep);
+  const answerKey  = askSecond ? p.second : p.first;
+  const author = state.script === 't' ? item.at : item.a;
+  const src    = state.script === 't' ? item.srct : item.src;
+  return {
+    ask: askSecond ? '请默写【下半句】：' : '请默写【上半句】：',
+    promptHtml: paint(askSecond ? (p.first + p.sep) : p.second),
+    hintHtml: '<div class="sk han">' + skeleton(answerDisp) + '</div>'
+      + '<div class="sk-note">标点已给出，共需默写 <b>' + norm(answerKey).length
+      + '</b> 个汉字（繁体、简体都可以）</div>',
+    keys: [answerKey],
+    match: (user) => norm(user) === norm(answerKey),
+    revealHtml: '<div class="correct-line han">' + paint(p.full) + '</div>',
+    sourceLine: '—— ' + esc(author) + esc(src),
+    fullText: p.full
+  };
+}
+
+/* =========================================================================
+   二、带点字（加点词解释）：出题器
+   判分规则：① 与任一标准答案一致即算对；
+             ② 答案里出现该词的核心义项关键词即算对（近义答案由关键词覆盖）；
+             ③ 判错时用户可自己点"意思对了，算我对"。
+   ========================================================================= */
+function splitDaidian(item){
+  const m = item.q.match(/【(.+?)】/);
+  const word = m ? m[1] : '';
+  const before = m ? item.q.slice(0, m.index) : item.q;
+  const after  = m ? item.q.slice(m.index + m[0].length) : '';
+  return {word, before, after,
+    html: paint(before) + '<em class="dot">' + esc(word) + '</em>' + paint(after)};
+}
+function questionDaidian(item){
+  const p = splitDaidian(item);
+  return {
+    ask: '解释加点词「' + esc(p.word) + '」在句中的意思：',
+    promptHtml: p.html,
+    hintHtml: '<div class="sk-note">写出这个词在句中的意思即可，'
+      + '近义说法（多个答案中也只需答对一个）同样算对</div>',
+    keys: item.a,
+    match: (user) => {
+      const u = normAns(user);
+      if(!u) return false;
+      if(item.a.some(a => normAns(a) === u)) return true;
+      return item.k.some(k => u.includes(normAns(k)));
+    },
+    revealHtml: '<div class="correct-line han">' + p.html + '</div>'
+      + '<div class="answer-line"><span class="lbl">标准答案</span>' + esc(item.a.join(' ／ ')) + '</div>',
+    sourceLine: '—— ' + esc(item.g),
+    fullText: item.q.replace(/[【】]/g, '')
+  };
+}
+
+/* 各模块的选项与出题 */
+function moduleItems(id){
+  if(id === 'daidian'){
+    return DAIDIAN.filter(it => state.scope === 'all' || it.sec === state.scope);
+  }
+  return MINGJU.slice();
+}
+function questionFor(item){
+  return state.moduleId === 'daidian' ? questionDaidian(item) : questionMingju(item);
+}
+
+/* =========================================================================
+   首页
+   ========================================================================= */
+function renderHome(){
+  state.view = 'home';
+  const mods = MODULES.map(m => {
+    const n = m.ready ? '共 ' + moduleTotal(m.id) + ' 题' : m.desc;
+    return `
+    <div class="mod ${m.ready?'':'locked'}" data-id="${m.id}" data-ready="${m.ready?1:0}">
+      <div class="no">${m.no}</div>
+      <div class="m-main">
+        <div class="m-name">${esc(m.name)}</div>
+        <div class="m-desc">${esc(m.ready ? (m.desc + ' · ' + n) : m.desc)}</div>
+      </div>
+      <div class="go">${m.ready ? '开始 ›' : '待添加'}</div>
+    </div>`;
+  }).join('');
+
+  $('app').innerHTML = `
+    <div class="top"><div class="title han">中文考试练习<small>在线练习 · 自动判分 · 繁简皆可</small></div></div>
+    ${mods}
+    <div class="card" style="padding:14px 16px">
+      <p class="desc" style="font-size:12.5px;line-height:1.75">
+        手机使用：在浏览器打开本页后，点「分享 / 菜单」→「添加到主屏幕」，即可全屏使用，像小程序一样，断网也能做。<br>
+        分享给同学：把这个网址发给他们即可，不需要和你连同一个网络。
+      </p>
+    </div>`;
+
+  $('app').querySelectorAll('.mod').forEach(node => {
+    node.onclick = () => {
+      if(node.dataset.ready === '1') renderSetup(node.dataset.id);
+      else toast('该模块内容待补充，告诉我考什么就能加进来');
+    };
+  });
+}
+function moduleTotal(id){
+  if(id === 'daidian') return DAIDIAN.length;
+  return MINGJU.length;
+}
+
+/* =========================================================================
+   练习设置
+   ========================================================================= */
+function renderSetup(moduleId){
+  state.view = 'setup';
+  state.moduleId = moduleId;
+  const S = (v,k) => state[k] === v ? 'on' : '';
+  const total = moduleItems(moduleId).length;
+
+  const rows = moduleId === 'daidian' ? `
+      <div class="row">
+        <div class="lab">出题范围</div>
+        <div class="seg" id="segScope">
+          <button class="${S('all','scope')}" data-v="all">全部<span class="s">${DAIDIAN.length} 处</span></button>
+          <button class="${S('gushi','scope')}" data-v="gushi">《古诗十九首》<span class="s">6 处</span></button>
+          <button class="${S('quanxue','scope')}" data-v="quanxue">《劝学》<span class="s">9 处</span></button>
+          <button class="${S('bianxi','scope')}" data-v="bianxi">一词多义辨析<span class="s">20 处</span></button>
+        </div>
+      </div>` : `
+      <div class="row">
+        <div class="lab">默写方向</div>
+        <div class="seg" id="segMode">
+          <button class="${S('hs','mode')}" data-v="hs">给上半句 · 默下半句<span class="s">例：非淡泊无以明志，＿＿</span></button>
+          <button class="${S('sh','mode')}" data-v="sh">给下半句 · 默上半句<span class="s">例：＿＿，非宁静无以致远</span></button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="lab">显示字形</div>
+        <div class="seg" id="segScript">
+          <button class="${S('s','script')}" data-v="s">简体</button>
+          <button class="${S('t','script')}" data-v="t">繁體</button>
+        </div>
+      </div>`;
+
+  const mod = MODULES.find(m => m.id === moduleId);
+  $('app').innerHTML = `
+    <div class="top">
+      <button class="back" id="bk">‹ 返回</button>
+      <div class="title">${esc(mod.name)}</div>
+    </div>
+    <div class="card">
+      <h2>选择范围</h2>
+      <p class="desc">${moduleId === 'daidian'
+        ? '写出加点词在句中的意思；一个词有多个答案的，答对一个就算对。'
+        : '标点符号由小程序给出，你只需默写出汉字。'}</p>
+      ${rows}
+      <div class="row">
+        <div class="lab">题目顺序</div>
+        <div class="seg" id="segShuffle">
+          <button class="${S(true,'shuffle')}" data-v="1">乱序（打乱）</button>
+          <button class="${S(false,'shuffle')}" data-v="0">原顺序</button>
+        </div>
+      </div>
+      <button class="btn" id="start">开始练习（${total} 题）</button>
+    </div>
+    <div class="foot">答案与出处会在每题作答后直接显示</div>`;
+
+  $('bk').onclick = renderHome;
+  const bind = (id, key, parse) => {
+    const box = $(id);
+    if(!box) return;
+    box.querySelectorAll('button').forEach(b => b.onclick = () => {
+      state[key] = parse(b.dataset.v);
+      saveOpts();
+      renderSetup(moduleId);
+    });
+  };
+  bind('segScope','scope', v => v);
+  bind('segMode','mode', v => v);
+  bind('segScript','script', v => v);
+  bind('segShuffle','shuffle', v => v === '1');
+  $('start').onclick = () => startQuiz(moduleId);
+}
+
+/* =========================================================================
+   答题引擎
+   ========================================================================= */
+function startQuiz(moduleId, pool){
+  state.moduleId = moduleId;              // 必须同步，否则出题器会按旧模块解析
+  const items = (pool || moduleItems(moduleId)).slice();
+  state.queue = state.shuffle ? shuffleArr(items) : items;
+  state.idx = 0; state.results = []; state.answered = false; state.userInput = '';
+  renderQuiz();
+}
+function reshuffle(){
+  const from = state.answered ? state.idx + 1 : state.idx;
+  state.queue = state.queue.slice(0, from).concat(shuffleArr(state.queue.slice(from)));
+  renderQuiz();
+  toast(state.answered ? '剩余题目已重新打乱' : '已重新打乱顺序');
+}
+function advance(){
+  if(state.idx + 1 >= state.queue.length){ renderResult(); return; }
+  state.idx++; state.answered = false; state.userInput = ''; renderQuiz();
+  setTimeout(()=>{ const i = $('ans'); if(i) i.focus(); }, 30);
+}
+function submit(giveUp){
+  const q = state.q || questionFor(state.queue[state.idx]);
+  const input = $('ans');
+  const raw = giveUp ? '' : (input ? input.value : '');
+  if(!giveUp && !raw.trim()){ toast('请先写下你的答案'); if(input) input.focus(); return; }
+  state.userInput = raw.trim();
+  state.correct = q.match(state.userInput);
+  state.answered = true;
+  state.results.push({item: state.queue[state.idx], q, userInput: state.userInput, correct: state.correct});
+  renderQuiz();
+}
+/* 用户自己判定"意思对了" */
+function overrideCorrect(){
+  const r = state.results[state.results.length - 1];
+  if(!r || r.correct) return;
+  r.correct = true; r.forced = true;
+  state.correct = true;
+  renderQuiz();
+  toast('已记为答对');
+}
+
+function renderQuiz(){
+  state.view = 'quiz';
+  const item = state.queue[state.idx];
+  const q = state.q = questionFor(item);
+  const done = state.results.filter(r => r.correct).length;
+  const wrongN = state.results.length - done;
+  const no = state.idx + 1, total = state.queue.length;
+
+  let answerArea, actionBar;
+  if(!state.answered){
+    answerArea = `
+      <div class="prompt han">${q.promptHtml}</div>
+      ${q.hintHtml}
+      <input class="ans" id="ans" type="text" autocomplete="off" autocorrect="off"
+             autocapitalize="off" spellcheck="false" enterkeyhint="done"
+             placeholder="${state.moduleId === 'daidian' ? '写出这个词的意思' : '在此输入汉字，不用打标点'}" />`;
+    actionBar = `
+      <div class="actionbar">
+        <button class="mini" id="skip">看答案</button>
+        <button class="primary" id="ok">提交</button>
+      </div>`;
+  }else{
+    const okCls = state.correct ? 'ok' : 'bad';
+    answerArea = `
+      <div class="verdict ${okCls}">${state.correct ? '✅ ' + (state.moduleId === 'daidian' ? '解释正确' : '默写正确') : '❌ ' + (state.moduleId === 'daidian' ? '意思不对' : '默写有误')}</div>
+      <div class="result-box ${okCls}">
+        ${q.revealHtml}
+        <div class="src">${q.sourceLine}</div>
+        ${state.correct ? '' : `<div class="yours">你写的是：${state.userInput ? esc(state.userInput) : '（未作答）'}</div>
+        <button class="btn ghost" id="force" style="margin-top:12px;min-height:44px;font-size:14.5px">意思对了 · 算我对</button>`}
+      </div>`;
+    actionBar = `
+      <div class="actionbar">
+        <button class="primary" id="next">${no < total ? '下一题 ›' : '查看成绩 ›'}</button>
+      </div>`;
+  }
+
+  const head = state.moduleId === 'daidian'
+    ? esc(MODULES.find(m => m.id === 'daidian').name)
+    : '名句默写 · ' + (state.mode === 'hs' ? '默下半句' : '默上半句') + (state.script === 't' ? ' · 繁體' : '');
+
+  $('app').innerHTML = `
+    <div class="top">
+      <button class="back" id="bk">‹ 首页</button>
+      <div class="title">${head}</div>
+    </div>
+    <div class="qbar">
+      <span>第 ${no} / ${total} 题</span>
+      <span>✓ ${done} · ✗ ${wrongN}</span>
+      <button class="mini" id="re">重新打乱</button>
+    </div>
+    <div class="bar"><i style="width:${(state.idx / total * 100).toFixed(1)}%"></i></div>
+    <div class="card">
+      <div class="ask">${q.ask}</div>
+      ${answerArea}
+    </div>
+    ${actionBar}`;
+
+  $('bk').onclick = renderHome;
+  $('re').onclick = reshuffle;
+  if(!state.answered){
+    const inp = $('ans');
+    inp.focus();
+    inp.addEventListener('keydown', e => {
+      if(e.key === 'Enter' && !e.isComposing){ e.preventDefault(); submit(false); }
+    });
+    $('ok').onclick = () => submit(false);
+    $('skip').onclick = () => submit(true);
+  }else{
+    $('next').onclick = advance;
+    if($('force')) $('force').onclick = overrideCorrect;
+  }
+}
+
+/* =========================================================================
+   成绩单
+   ========================================================================= */
+function renderResult(){
+  state.view = 'result';
+  const wrongs = state.results.filter(r => !r.correct);
+  const right = state.results.length - wrongs.length;
+  const total = state.results.length;
+  const rate = total ? Math.round(right / total * 100) : 0;
+  const wrongHtml = wrongs.length ? wrongs.map(r => `
+      <div class="wrong-item">
+        <div class="wq">${esc(r.q.ask)}</div>
+        <div class="wa han">${r.q.revealHtml.replace(/<div class="answer-line">[\s\S]*?<\/div>/, '')}</div>
+        <div class="answer-line" style="font-size:17px"><span class="lbl">标准答案</span>${esc(r.q.keys.join(' ／ '))}</div>
+        <div class="src">${r.q.sourceLine}　你的答案：${r.userInput ? esc(r.userInput) : '（跳过）'}</div>
+      </div>`).join('') : '<p class="desc">全部答对，太厉害了！</p>';
+
+  $('app').innerHTML = `
+    <div class="top"><button class="back" id="bk">‹ 首页</button><div class="title">本轮成绩</div></div>
+    <div class="card">
+      <div class="big">${rate}%<small>正确率</small></div>
+      <div class="stats">
+        <div class="stat"><b style="color:var(--ok)">${right}</b><span>答对</span></div>
+        <div class="stat"><b style="color:var(--bad)">${wrongs.length}</b><span>答错</span></div>
+        <div class="stat"><b>${total}</b><span>总题数</span></div>
+      </div>
+      <button class="btn" id="again">再来一轮（重新打乱）</button>
+      ${wrongs.length ? '<button class="btn ghost" id="retry" style="margin-top:10px">只练错题</button>' : ''}
+    </div>
+    <div class="card">
+      <h2>错题回顾</h2>
+      ${wrongHtml}
+    </div>`;
+
+  $('bk').onclick = renderHome;
+  $('again').onclick = () => startQuiz(state.moduleId);
+  if($('retry')) $('retry').onclick = () => startQuiz(state.moduleId, wrongs.map(w => w.item));
+}
+
+/* ---------- 启动 ---------- */
+loadOpts();
+renderHome();
+</script>
+</body>
+</html>
